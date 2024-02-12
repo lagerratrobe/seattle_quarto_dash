@@ -1,0 +1,61 @@
+---
+title: "Seattle Weather Dash"
+format: dashboard
+server: shiny
+---
+
+```{r}
+#| context: setup
+library(shiny)
+library(ggplot2)
+library(DT)
+library(dplyr)
+source("utils.R")
+
+df <- getData()
+```
+
+# {.sidebar}
+
+```{r}
+selectInput(inputId = "variable",
+                  label = h4("Choose Variable to Plot"),
+                  choices = c("Temperature", "Precip"),
+                  selected = "Temperature")
+```
+
+# Plot
+
+```{r}
+plotOutput("variablePlot")
+```
+
+# Data
+
+```{r}
+tableOutput("table_data")
+```
+
+```{r}
+#| context: server
+
+  datasetInput <- reactive({
+    select(df, 
+           input$variable,
+           Time)
+  })
+ 
+  dataPlot <- reactive({
+    getPlot( df, input$variable )
+  })
+  
+  output$variablePlot <- renderPlot({
+    dataPlot()
+  })  
+
+  output$table_data <- renderTable({
+    mutate(df, 
+           Time = as.character(Time)
+           )
+  })
+```
